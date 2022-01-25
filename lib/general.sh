@@ -189,13 +189,13 @@ create_sources_list()
 	esac
 
 	# stage: add armbian repository and install key
-	if [[ $DOWNLOAD_MIRROR == "china" ]]; then
-		echo "deb https://mirrors.tuna.tsinghua.edu.cn/armbian $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" > "${SDCARD}"/etc/apt/sources.list.d/armbian.list
-	elif [[ $DOWNLOAD_MIRROR == "bfsu" ]]; then
-	    echo "deb http://mirrors.bfsu.edu.cn/armbian $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" > "${SDCARD}"/etc/apt/sources.list.d/armbian.list
-	else
+	# if [[ $DOWNLOAD_MIRROR == "china" ]]; then
+	# 	echo "deb https://mirrors.tuna.tsinghua.edu.cn/armbian $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" > "${SDCARD}"/etc/apt/sources.list.d/armbian.list
+	# elif [[ $DOWNLOAD_MIRROR == "bfsu" ]]; then
+	#     echo "deb http://mirrors.bfsu.edu.cn/armbian $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" > "${SDCARD}"/etc/apt/sources.list.d/armbian.list
+	# else
 		echo "deb http://"$([[ $BETA == yes ]] && echo "beta" || echo "apt" )".armbian.com $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" > "${SDCARD}"/etc/apt/sources.list.d/armbian.list
-	fi
+	# fi
 
 	# replace local package server if defined. Suitable for development
 	[[ -n $LOCAL_MIRROR ]] && echo "deb http://$LOCAL_MIRROR $RELEASE main ${RELEASE}-utils ${RELEASE}-desktop" > "${SDCARD}"/etc/apt/sources.list.d/armbian.list
@@ -1282,21 +1282,21 @@ function webseed ()
 	WEBSEED=($(curl -s https://redirect.armbian.com/mirrors | jq '.[] |.[] | values' | grep https | awk '!a[$0]++'))
 	# aria2 simply split chunks based on sources count not depending on download speed
 	# when selecting china mirrors, use only China mirror, others are very slow there
-	if [[ $DOWNLOAD_MIRROR == china ]]; then
-		WEBSEED=(
-		"https://mirrors.tuna.tsinghua.edu.cn/armbian-releases/"
-		)
-	elif [[ $DOWNLOAD_MIRROR == bfsu ]]; then
-		WEBSEED=(
-		"https://mirrors.bfsu.edu.cn/armbian-releases/"
-		)
-	fi
-	for toolchain in ${WEBSEED[@]}; do
-		# use only live, tnahosting return ok also when file is absent
-		if [[ $(wget -S --spider "${toolchain}${1}" 2>&1 >/dev/null | grep 'HTTP/1.1 200 OK') && ${toolchain} != *tnahosting* ]]; then
-			text="${text} ${toolchain}${1}"
-		fi
-	done
+	# if [[ $DOWNLOAD_MIRROR == china ]]; then
+	# 	WEBSEED=(
+	# 	"https://mirrors.tuna.tsinghua.edu.cn/armbian-releases/"
+	# 	)
+	# elif [[ $DOWNLOAD_MIRROR == bfsu ]]; then
+	# 	WEBSEED=(
+	# 	"https://mirrors.bfsu.edu.cn/armbian-releases/"
+	# 	)
+	# fi
+	# for toolchain in ${WEBSEED[@]}; do
+	# 	# use only live, tnahosting return ok also when file is absent
+	# 	if [[ $(wget -S --spider "${toolchain}${1}" 2>&1 >/dev/null | grep 'HTTP/1.1 200 OK') && ${toolchain} != *tnahosting* ]]; then
+	# 		text="${text} ${toolchain}${1}"
+	# 	fi
+	# done
 	text="${text:1}"
 	echo "${text}"
 }
@@ -1312,31 +1312,31 @@ download_and_verify()
 	local localdir=$SRC/cache/${remotedir//_}
 	local dirname=${filename//.tar.xz}
 
-        if [[ $DOWNLOAD_MIRROR == china ]]; then
-			local server="https://mirrors.tuna.tsinghua.edu.cn/armbian-releases/"
-		elif [[ $DOWNLOAD_MIRROR == bfsu ]]; then
-			local server="https://mirrors.bfsu.edu.cn/armbian-releases/"
-		else
+        # if [[ $DOWNLOAD_MIRROR == china ]]; then
+		# 	local server="https://mirrors.tuna.tsinghua.edu.cn/armbian-releases/"
+		# elif [[ $DOWNLOAD_MIRROR == bfsu ]]; then
+		# 	local server="https://mirrors.bfsu.edu.cn/armbian-releases/"
+		# else
 			local server=${ARMBIAN_MIRROR}
-        fi
+        # fi
 
 	if [[ -f ${localdir}/${dirname}/.download-complete ]]; then
 		return
 	fi
 
 	# switch to china mirror if US timeouts
-	timeout 10 curl --head --fail --silent ${server}${remotedir}/${filename} 2>&1 >/dev/null
-	if [[ $? -ne 7 && $? -ne 22 && $? -ne 0 ]]; then
-		display_alert "Timeout from $server" "retrying" "info"
-		server="https://mirrors.tuna.tsinghua.edu.cn/armbian-releases/"
+	# timeout 10 curl --head --fail --silent ${server}${remotedir}/${filename} 2>&1 >/dev/null
+	# if [[ $? -ne 7 && $? -ne 22 && $? -ne 0 ]]; then
+	# 	display_alert "Timeout from $server" "retrying" "info"
+	# 	server="https://mirrors.tuna.tsinghua.edu.cn/armbian-releases/"
 
-		# switch to another china mirror if tuna timeouts
-		timeout 10 curl --head --fail --silent ${server}${remotedir}/${filename} 2>&1 >/dev/null
-		if [[ $? -ne 7 && $? -ne 22 && $? -ne 0 ]]; then
-			display_alert "Timeout from $server" "retrying" "info"
-			server="https://mirrors.bfsu.edu.cn/armbian-releases/"
-		fi
-	fi
+	# 	# switch to another china mirror if tuna timeouts
+	# 	timeout 10 curl --head --fail --silent ${server}${remotedir}/${filename} 2>&1 >/dev/null
+	# 	if [[ $? -ne 7 && $? -ne 22 && $? -ne 0 ]]; then
+	# 		display_alert "Timeout from $server" "retrying" "info"
+	# 		server="https://mirrors.bfsu.edu.cn/armbian-releases/"
+	# 	fi
+	# fi
 
 
 	# check if file exists on remote server before running aria2 downloader
